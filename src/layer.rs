@@ -1,6 +1,9 @@
+use std::f32::consts::E;
+
 use ndarray::{Array2, Array1};
 use rand::{rngs::ThreadRng, Rng};
 
+#[derive(Clone)]
 pub struct Layer {
     pub neurons: Array1<f32>,
     pub weights: Array2<f32>,
@@ -14,6 +17,14 @@ pub enum CreationType {
     Constants {number: f32}
 }
 
+#[derive(Clone)]
+pub enum ActivationFunction {
+    None,
+    Sigmoid,
+    Positive,
+    ZeroOne,
+}
+
 impl Layer {
     pub fn new(input_size: usize, layer_size: usize, creation_type: &CreationType) -> Self {
 
@@ -23,6 +34,8 @@ impl Layer {
 
         match creation_type {
             CreationType::Randomized { amount } => {
+                let mut rng = rand::thread_rng();
+
                 t_biases = Array1::zeros([layer_size]);
                 t_weights = Array2::zeros([layer_size, input_size]);
             },
@@ -47,9 +60,27 @@ impl Layer {
         }
     }
 
-    pub fn calculate(&mut self, input: Array1<f32>) {
+    pub fn calculate(&mut self, input: Array1<f32>, activation: &ActivationFunction) {
         self.neurons = self.weights.dot(&input);
         self.neurons += &self.biases;
+        self.activate(activation);
+    }
+
+    pub fn activate(&mut self, activation: &ActivationFunction) {
+        for n in self.neurons.iter_mut() {
+            match activation {
+                ActivationFunction::Sigmoid => {
+                    *n = 1./(1.+E.powf(-*n));
+                },
+                ActivationFunction::Positive => {
+                    *n = n.max(0.);
+                },
+                ActivationFunction::ZeroOne => {
+                    *n = if *n < 0. {0.} else {1.};
+                }
+                _ => (),
+            }
+        }
     }
 
     pub fn get_input_size(&self) -> usize {
@@ -105,7 +136,7 @@ impl Layer {
 fn new_layer() {
     let mut layer = Layer::new(3, 1, &CreationType::Zeroes);
 
-    layer.calculate(Array1::zeros([3]));
+    layer.calculate(Array1::zeros([3]), &ActivationFunction::None);
 
     assert_eq!(layer.neurons[0], 0.);
 }
@@ -114,7 +145,7 @@ fn new_layer() {
 fn calculate_ones() {
     let mut layer = Layer::new(3, 1, &CreationType::Constants { number: 2. });
 
-    layer.calculate(Array1::ones([3]));
+    layer.calculate(Array1::ones([3]), &ActivationFunction::None);
 
     assert_eq!(layer.neurons[0], 8.);
 }
@@ -123,15 +154,28 @@ fn calculate_ones() {
 pub fn test_layer_mutation() {
     let mut layer = Layer::new(3, 1, &CreationType::Ones);
 
-    layer.calculate(Array1::ones([3]));
+    layer.calculate(Array1::ones([3]), &ActivationFunction::None);
     
     let result_1 = layer.neurons[0];
     
     let mut rng = rand::thread_rng();
     layer.mutate(1., &mut rng);
-    layer.calculate(Array1::ones([3]));
+    layer.calculate(Array1::ones([3]), &ActivationFunction::None);
 
     let result_2 = layer.neurons[0];
 
     assert_ne!(result_1, result_2);
+}
+
+#[test]
+pub fn test_activation() {
+    let mut layer = Layer::new(3, 1, &CreationType::Constants { number: 2. });
+
+    layer.calculate(Array1::ones([3]), &ActivationFunction::ZeroOne);
+
+    assert_eq!(layer.neurons[0], 1.);
+
+    layer.calculate(Array1::ones([3]), &ActivationFunction::Positive);
+
+    assert_eq!(layer.neurons[0], 8.);
 }
