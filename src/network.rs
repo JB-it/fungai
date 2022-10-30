@@ -167,9 +167,12 @@ pub fn crude_learning_test() {
     let mut mn = min_network.borrow_mut();
 
     for i in 0..3 {
-        mn.reset();
         mn.calculate(inputs.index_axis(Axis(0), i).to_owned());
         println!("Input: {}\n Output: {}", outputs[i], mn.outputs[0]);
     }
+
+    assert_eq!(min_network.error < 1., true);
+
+
     
 }
