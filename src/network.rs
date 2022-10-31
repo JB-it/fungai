@@ -70,6 +70,10 @@ impl Network {
         }
     }
 
+    pub fn get_outputs(&self) -> Vec<f32> {
+        self.outputs.to_vec().clone()
+    }
+
 }
 
 #[test]
