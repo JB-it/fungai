@@ -5,7 +5,7 @@ use crate::layer::*;
 use rand::Rng;
 
 #[derive(Clone)]
-struct Network {
+pub struct Network {
     pub layers: Vec<Layer>,
     pub outputs: Array1<f32>,
     pub activation_function: ActivationFunction,
