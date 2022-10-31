@@ -33,7 +33,12 @@ impl Network {
         }
     }
 
-    pub fn calculate(&mut self, inputs: Array1<f32>) {
+    pub fn calculate(&mut self, inputs: Vec<f32>) {
+        let input_arr = Array1::from_vec(inputs);
+        self.calculate_arr(input_arr);
+    }
+
+    pub fn calculate_arr(&mut self, inputs: Array1<f32>) {
         
         let mut result: Array1<f32> = inputs.clone();
         
@@ -71,7 +76,7 @@ impl Network {
 pub fn create_network() {
     let mut network = Network::new(vec![3, 1], CreationType::Zeroes, ActivationFunction::None);
 
-    network.calculate(Array1::zeros([3]));
+    network.calculate_arr(Array1::zeros([3]));
 
     assert_eq!(network.outputs[0], 0.);
 }
@@ -80,7 +85,7 @@ pub fn create_network() {
 pub fn test_single_layer() {
     let mut network = Network::new(vec![3, 1], CreationType::Ones, ActivationFunction::None);
 
-    network.calculate(Array1::ones([3]));
+    network.calculate_arr(Array1::ones([3]));
 
     assert_eq!(network.outputs[0], 4.);
 }
@@ -89,7 +94,7 @@ pub fn test_single_layer() {
 pub fn test_multiple_layers() {
     let mut network = Network::new(vec![3, 2, 1], CreationType::Ones, ActivationFunction::None);
 
-    network.calculate(Array1::ones([3]));
+    network.calculate_arr(Array1::ones([3]));
 
     assert_eq!(network.outputs[0], 9.);
 }
@@ -98,12 +103,12 @@ pub fn test_multiple_layers() {
 pub fn test_network_mutation() {
     let mut network = Network::new(vec![3, 2, 1], CreationType::Ones, ActivationFunction::None);
   
-    network.calculate(Array1::ones([3]));
+    network.calculate_arr(Array1::ones([3]));
     
     let result_1 = network.outputs[0];
     
     network.mutate(1, 1.);
-    network.calculate(Array1::ones([3]));
+    network.calculate_arr(Array1::ones([3]));
 
     let result_2 = network.outputs[0];
 
@@ -134,7 +139,7 @@ pub fn crude_learning_test() {
 
         for n in networks.iter_mut() {
             for i in 0..3 {
-                n.calculate(inputs.index_axis(Axis(0), i).to_owned());
+                n.calculate_arr(inputs.index_axis(Axis(0), i).to_owned());
 
                 n.error += (outputs[i] - n.outputs[0]).abs();
             }
@@ -167,7 +172,7 @@ pub fn crude_learning_test() {
     let mut mn = min_network.borrow_mut();
 
     for i in 0..3 {
-        mn.calculate(inputs.index_axis(Axis(0), i).to_owned());
+        mn.calculate_arr(inputs.index_axis(Axis(0), i).to_owned());
         println!("Input: {}\n Output: {}", outputs[i], mn.outputs[0]);
     }
 
