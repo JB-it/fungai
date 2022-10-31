@@ -7,7 +7,7 @@ authors = ["Ardu"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-name = "your_library_name"
+name = "fungai"
 path = "src/lib.rs"
 
 [dependencies]
